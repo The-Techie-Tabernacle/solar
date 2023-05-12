@@ -22,10 +22,10 @@ tagTGList = ["TAG", "TG"]
 layout = [
     [sg.Text("Welcome to Solar!", key="-OUT-")],
     [sg.Text("Main Nation:     "), sg.Input(size=(40, 5), key="user-agent")],
-    [sg.Text("Desired Target: "), sg.Input(size=(30, 5), key="-TARG-"), sg.Combo(values=regNatList,
-                                                                         readonly=True, key="-REGNAT-")],
-    [sg.Text("Desired Action: "), sg.Combo(values=actionList, readonly=True, key="-ACTION-"),
-     sg.Combo(values=tagTGList, readonly=True, key="-TAGTG-")],
+    [sg.Text("Desired Target: "), sg.Input(size=(30, 5), key="-TARG-"), sg.Combo(values=regNatList, default_value="Region",
+                                                                                 readonly=True, key="-REGNAT-")],
+    [sg.Text("Desired Action: "), sg.Combo(values=actionList, default_value="Non-Endo" , readonly=True, key="-ACTION-"),
+     sg.Combo(values=tagTGList, default_value="TAG", readonly=True, key="-TAGTG-")],
     [sg.Button("Exit", size=(3, 1), key="-EXIT-"), sg.Button("Submit", size=(5, 1), key="-SUBMIT-")]
 ]
 
@@ -48,38 +48,38 @@ def GetHeaders(values):
 
 
 # Loop to open and hold open the gui
-while event != "exit":
+while event != "-EXIT-":
     event, values = window.read()
     # Check if the headers have been set
     if headers == "":
         headers = GetHeaders(values)
     # Checks if the window closed or if the exit button was clicked
-    if event == sg.WIN_CLOSED or event == "exit":
+    if event in [sg.WIN_CLOSED, "-EXIT-"]:
         break
-    elif event == "submit":
+    elif event == "-SUBMIT-":
         # Wonderful, wonderful match case
-        # TODO - Redo match case for new options
-        match (values["action"]):
-            case "Del Non-Endo":
-                post = so.region_info(headers, "NER", values["target"])
-                window['OUT'].update(post)
-
-            case "Non-WA in Region":
-                post = so.region_info(headers, "NWR", values["target"])
-                window['OUT'].update(post)
-
-            case "Nation Non-Endo":
-                if window['tag'].get_text() == 'TAG':
-                    post = so.calc_non_nat_tagged(headers, values["target"])
-                    window['OUT'].update(post)
+        match (values["-ACTION-"]):
+            case "Non-Endo":
+                if values["-REGNAT-"] == "Region":
+                    post = "Region"  # Once backend functions are fixed it will call for post here
                 else:
-                    post = so.calc_non_nat(headers, values["target"])
-                    window['OUT'].update(post)
+                    post = "Nation"
+                window['-OUT-'].update(post)
 
-            case other:
-                print("Yeet")
-    else:
-        print("test")
+            case "Non-WA":
+                if values["-REGNAT-"] == "Region":
+                    post = "Region"  # Once backend functions are fixed it will call for post here
+                else:
+                    post = "Nation"
+                window['-OUT-'].update(post)
+
+            case "Deathwatch":
+                if values["-REGNAT-"] == "Region":
+                    post = "Region"  # Once backend functions are fixed it will call for post here
+                else:
+                    post = "Nation"
+                window['-OUT-'].update(post)
+
 
 # Close the window
 window.close()
