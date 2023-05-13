@@ -16,8 +16,10 @@ import requests
 from xml.etree import ElementTree as ET
 from datetime import datetime as DT
 import shutil
-#from os import path
+
+# from os import path
 import gzip
+
 
 class ErrorRequest:
     def __init__(self, source, message, location="any"):
@@ -197,7 +199,6 @@ def non_endo(headers, regnat, target):
         )  # How did we get here?
 
 
-
 def write_nationlist(f, nationlist, formatting):
     if formatting == "tag":
         for nation in nationlist:
@@ -221,6 +222,7 @@ def getRoundedIdiot(a, b):
 
     return int((a * 10000) / b) / 100.0
 
+
 def non_wa(headers, regnat, target):
     raw_data = target_info(headers, regnat, target)
 
@@ -237,7 +239,7 @@ def non_wa(headers, regnat, target):
             wanations = wanations.split(",")
         else:
             wanations = [wanations]
-        
+
         notinwa = []
         for nation in nations:
             if nation not in wanations:
@@ -253,23 +255,28 @@ def non_wa(headers, regnat, target):
             return True
 
 
-# https://www.nationstates.net/pages/regions.xml.gz 
-# https://www.nationstates.net/pages/nations.xml.gz 
+# https://www.nationstates.net/pages/regions.xml.gz
+# https://www.nationstates.net/pages/nations.xml.gz
+
 
 def download_file(headers, url):
-    #print(f"Downloading {url}")
-    local_filename = url.split('/')[-1]
+    # print(f"Downloading {url}")
+    local_filename = url.split("/")[-1]
     with requests.get(url, stream=True, headers=headers) as r:
-        with open(local_filename, 'wb') as f:
+        with open(local_filename, "wb") as f:
             shutil.copyfileobj(r.raw, f)
-    
+
     return local_filename
 
+
 def parseNations(headers, region):
-    r = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?region={region}&q=nations", headers=headers) # Fetch current regionlist - helps speed at the cost of an API req
+    r = requests.get(
+        f"https://www.nationstates.net/cgi-bin/api.cgi?region={region}&q=nations",
+        headers=headers,
+    )  # Fetch current regionlist - helps speed at the cost of an API req
     nations = ET.fromstring(r.text).findtext("NATIONS").split(":")
 
-    with gzip.open("nations.xml.gz",mode="r") as f:
+    with gzip.open("nations.xml.gz", mode="r") as f:
         rawnations = f.read()
 
     nationsxml = ET.fromstring(rawnations)
@@ -277,7 +284,7 @@ def parseNations(headers, region):
     results = {}
 
     for nation in nationsxml.findall("NATION"):
-        if nation.find("REGION").text.lower().replace(" ","_") == region:
+        if nation.find("REGION").text.lower().replace(" ", "_") == region:
             lastlogin = nation.find("LASTACTIVITY").text
             if "days" in lastlogin.lower():
                 numDays = str(int(lastlogin.split(" days")[0]))
@@ -293,7 +300,9 @@ def parseNations(headers, region):
 def deathwatch(headers, regnat, target):
     # Deathwatch code adapted from https://github.com/rootabeta/DeathWatch
     if regnat == "region":
-        download_file(headers, "https://www.nationstates.net/pages/nations.xml.gz") #Download nations datadump
+        download_file(
+            headers, "https://www.nationstates.net/pages/nations.xml.gz"
+        )  # Download nations datadump
         times = parseNations(headers, target)
         return times
     else:
@@ -308,7 +317,8 @@ def deathwatch(headers, regnat, target):
 
             results[numDays].append(nation.find("NAME").text)
 
-        return results # Same data type moment
+        return results  # Same data type moment
+
 
 # Parameters: mode, assorted settings
 # Does: passes assorted settings to correct helper function as determined by mode.
@@ -403,7 +413,7 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                         f"Number of nations in WA: {numWA} ({getRoundedIdiot(numWA,numNations)})%\n"
                     )
                     f.write(f"Nations not in the WA in {target}:\n")
-                    write_nationlist(f,notWA,formatting)
+                    write_nationlist(f, notWA, formatting)
 
                 else:
                     if raw_data:
@@ -421,10 +431,12 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                 f.write(f"Date generated: {DT.now().date().isoformat()}\n")
                 f.write("Mode: DeathWatch\n")
                 for key in sorted(raw_data.keys(), key=lambda x: int(x)):
-                    f.write(f"Nations have not logged in for {key} days: ({len(raw_data[key])})\n")
-                    write_nationlist(f,raw_data[key],formatting)
-    #                f.write("\n")
-                
+                    f.write(
+                        f"Nations that have not logged in for {key} days: ({len(raw_data[key])})\n"
+                    )
+                    write_nationlist(f, raw_data[key], formatting)
+                #                f.write("\n")
+
                 f.write("\nEND OF REPORT\n\n\n")
 
     # Abort and alert user in the event of an error
