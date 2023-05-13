@@ -2,6 +2,7 @@
 Project Solar! This is a basic data analyst script meant to allow the user to gather information on NS regions' WA -
 membership rates as well as who is endorsing who etc.
 
+Patch Notes vA1.0.3: Continue refactoring, backend modification, etc. 
 Patch Notes vM1.0.2: Began refactoring the code to work with new GUI
 Patch Notes vM0.2.4: Redid most of it for interaction with the GUI. . . needs work
 Patch Notes vM0.2.3: Added Try/Except to check if there are no WA nations
@@ -39,7 +40,7 @@ def target_info(headers, regnat, target):
     if regnat == "region":
         url = f"https://www.nationstates.net/cgi-bin/api.cgi?region={target}&q=wanations+nations+officers+delegate"
     elif regnat == "nation":
-        url = f"https://www.nationstates.net/cgi-bin/api.cgi?nation={target}&q=region+endorsements"
+        url = f"https://www.nationstates.net/cgi-bin/api.cgi?nation={target}&q=region+endorsements+wa"
     else:
         raise RuntimeError(
             f"Illegal option selected for regnat: {regnat}"
@@ -194,13 +195,6 @@ def non_endo(headers, regnat, target):
         )  # How did we get here?
 
 
-def non_wa():
-    pass
-
-
-def deathwatch():
-    pass
-
 
 def write_nationlist(f, nationlist, formatting):
     if formatting == "tag":
@@ -224,6 +218,40 @@ def getRoundedIdiot(a, b):
     # 50.00
 
     return int((a * 10000) / b) / 100.0
+
+def non_wa(headers, regnat, target):
+    raw_data = target_info(headers, regnat, target)
+
+    if regnat == "region":
+        nations = raw_data.find("NATIONS").text
+        wanations = raw_data.find("UNNATIONS").text
+
+        if ":" in nations:
+            nations = nations.split(":")
+        else:
+            nations = [nations]
+
+        if "," in wanations:
+            wanations = wanations.split(",")
+        else:
+            wanations = [wanations]
+        
+        notinwa = []
+        for nation in nations:
+            if nation not in wanations:
+                notinwa.append(nation)
+
+        return (len(nations), len(wanations), notinwa)
+
+    elif regnat == "nation":
+        endostatus = raw_data.find("UNSTATUS").text
+        if endostatus.lower() == "non-member":
+            return False
+        else:
+            return True
+
+def deathwatch():
+    pass
 
 
 # Parameters: mode, assorted settings
@@ -300,10 +328,34 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                                 f"Target {delInfo[0]} has all possible endorsements"
                             )
 
-                f.write("\nEND OF REPORT\n\n\n")
+                f.write("END OF REPORT\n\n\n")
 
         case "non-wa":
             raw_data = non_wa(headers, regnat, target)
+
+            with open(reportName, "a") as f:
+                f.write(f"Report for {regnat} {target.title()}\n")
+                f.write(f"Date generated: {DT.now().date().isoformat()}\n")
+                f.write("Mode: Non-WA\n")
+                if regnat == "region":
+                    numNations = raw_data[0]
+                    numWA = raw_data[1]
+                    notWA = raw_data[2]
+                    f.write("\n")
+                    f.write(f"Number of total nations: {numNations}\n")
+                    f.write(
+                        f"Number of nations in WA: {numWA} ({getRoundedIdiot(numWA,numNations)})%\n"
+                    )
+                    f.write(f"Nations not in the WA in {target}:\n")
+                    write_nationlist(f,notWA,formatting)
+
+                else:
+                    if raw_data:
+                        f.write(f"{target.title()} is in the World Assembly\n")
+                    else:
+                        f.write(f"{target.title()} is not in the World Assembly\n")
+
+                f.write("\nEND OF REPORT\n\n\n")
 
         case "deathwatch":
             raw_data = deathwatch(headers, regnat, target)

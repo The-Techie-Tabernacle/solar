@@ -57,8 +57,10 @@ headers = ""
 def GetHeaders(values):
     # Headers with main nation from entry
     headers = {
-        "User-Agent": f"Project Solar requesting region and nation information, developed by nation=Hesskin_Empire "
-        f"and in use by {values['user-agent']}"
+        "User-Agent": (
+            "Project Solar requesting region and nation information, developed by"
+            f" nation=Hesskin_Empire and in use by {values['user-agent']}"
+        )
     }
     return headers
 
@@ -78,7 +80,9 @@ while event != "-EXIT-":
         # Wonderful, wonderful match case - NO MATCH CASE FOR YOU >:(
         #        match (values["-ACTION-"]):
 
-        post = "Error: could not complete request. Please file a bug report."  # make the default ask to file a bug report
+        post = (  # make the default ask to file a bug report
+            "Error: could not complete request. Please file a bug report."
+        )
         mode = values["-ACTION-"].lower()
         target = values["-TARG-"].lower().replace(" ", "_")  # NSification
         regnat = values["-REGNAT-"].lower()
