@@ -15,31 +15,10 @@ import requests
 from xml.etree import ElementTree as ET
 from datetime import datetime as DT
 
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## # Global scope lists (Two of our three primaries use this) AND THEY SHOULDN'T
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## #residents = []
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## #wa_nations = []
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## 
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## # Global scope root
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## #information_root = None
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## 
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## # Global scope bool
-############ I'M BANISHING YOU TO THE SHADOW REALM ########## #target_type = True
 
-# Leaving this here as a note to future developers, so you all see what I had to deal with.
-#def regnat_request(regnat):
-#    # Checks if regnat is a region or not
-#    global target_type
-#
-#    if regnat == "Region":
-#        # If region, True
-#        target_type = True
-#    else:
-#        # Otherwise, False
-#        target_type = False
-
-class ErrorRequest():
+class ErrorRequest:
     def __init__(self, source, message, location="any"):
-        self.source = source #Parent function
+        self.source = source  # Parent function
         self.message = message
         self.location = location
 
@@ -49,147 +28,148 @@ class ErrorRequest():
             return f"Error in {self.source}: {self.message}"
 
     def fatal(self):
-        raise RuntimeError(f"Fatal error in {self.source}: {self.message}. Solar cannot recover and will now shut down. Please file a bug report.")
+        raise RuntimeError(
+            f"Fatal error in {self.source}: {self.message}. Solar cannot recover and will now shut down. "
+            f"Please file a bug report."
+        )
+
 
 def target_info(headers, regnat, target):
-#    post = str
-#    information_root = None
-
-    # Target is already sanitized from user input
-#    target = target.replace(" ", "_").lower()
-
     # If it's a region, set the url to a region otherwise set to nation
     if regnat == "region":
         url = f"https://www.nationstates.net/cgi-bin/api.cgi?region={target}&q=wanations+nations+officers+delegate"
     elif regnat == "nation":
         url = f"https://www.nationstates.net/cgi-bin/api.cgi?nation={target}&q=region+endorsements"
     else:
-        raise RuntimeError(f"Illegal option selected for regnat: {regnat}") # How did we get here?
+        raise RuntimeError(
+            f"Illegal option selected for regnat: {regnat}"
+        )  # How did we get here?
 
     # Grab the API call itself
-    information_api = requests.get(
-        url, headers=headers
-    )
+    information_api = requests.get(url, headers=headers)
 
     # Check status and make sure we actually get in
     target_status = information_api.status_code
 
     if target_status != 200:
-        errorRequest = ErrorRequest("target_info",f"Illegal status code received for {regnat} {target}: {target_status}\nCheck that {target} exists and is spelled correctly.")
+        errorRequest = ErrorRequest(
+            "target_info",
+            f"Illegal status code received for {regnat} {target}: {target_status}\nCheck that {target} exists and is spelled correctly.",
+        )
         return errorRequest
 
     else:
-        return ET.fromstring(information_api.text) # Return the actual XML and allow calling function to parse
+        return ET.fromstring(
+            information_api.text
+        )  # Return the actual XML and allow calling function to parse
 
 
-# R : ( numNations, numWA, (delegate, nonEndos), [(officer, nonEndos)])
-# N : ( numNations, numWA, (target, nonEndos))
 def non_endo(headers, regnat, target):
     if not headers:
         return "Could not complete HTTP request: Headers not specified"
 
     raw_data = target_info(headers, regnat, target)
     if type(raw_data) == ErrorRequest:
-        return raw_data # Return the error request and do not attempt to parse it
-    
+        return raw_data  # Return the error request and do not attempt to parse it
+
     if regnat == "region":
-        regionData = raw_data #.find("REGION")
+        region_data = raw_data  # .find("REGION")
         if type(raw_data) == ErrorRequest:
             return raw_data
 
-        delegate = regionData.find("DELEGATE").text
+        delegate = region_data.find("DELEGATE").text
 
         officers = []
-        officersAll = regionData.find("OFFICERS")
-        for officer in officersAll.findall("OFFICER"):
+        officers_all = region_data.find("OFFICERS")
+        for officer in officers_all.findall("OFFICER"):
             officers.append(officer.find("NATION").text)
 
-        nations = regionData.find("NATIONS").text
-        numNations = len(nations)
-        wanations = regionData.find("UNNATIONS").text
-        numWA = len(wanations)
-        delegateInfo = None
+        nations = region_data.find("NATIONS").text
+        num_nations = len(nations)
+        wanations = region_data.find("UNNATIONS").text
+        num_wa = len(wanations)
 
-        #string.split fails if char not found - this prevents 0 or 1 nation regions from causing a crash. 
-
+        # string.split fails if char not found - this prevents 0 or 1 nation regions from causing a crash.
         if ":" in nations:
-            nations = nations.split(":") 
+            nations = nations.split(":")
         else:
             nations = [nations]
 
         if "," in wanations:
-            wanations = wanations.split(",") 
+            wanations = wanations.split(",")
         else:
             wanations = [wanations]
 
         if delegate:
-            delnonendorsers = []
-            delendorsers = target_info(headers, "nation", delegate)
-            if type(delendorsers) == ErrorRequest:
-                return delendorers
+            del_non_endos = []
+            del_endos = target_info(headers, "nation", delegate)
+            if type(del_endos) == ErrorRequest:
+                return del_endos
 
-            delendorsers = delendorsers.find("ENDORSEMENTS").text
-            if delendorsers:
-                if "," in delendorsers:
-                    delendorsers = delendorsers.split(",")
+            del_endos = del_endos.find("ENDORSEMENTS").text
+            if del_endos:
+                if "," in del_endos:
+                    del_endos = del_endos.split(",")
                 else:
-                    delendorsers = [delendorsers]
+                    del_endos = [del_endos]
 
                 for nation in wanations:
-                    if nation not in delendorsers:
-                        delnonendorsers.append(nation)
+                    if nation not in del_endos:
+                        del_non_endos.append(nation)
 
-            delegateInfo = (delegate, delnonendorsers)
+            delegate_info = (delegate, del_non_endos)
 
         else:
-            delegateInfo = (None, [])
+            delegate_info = (None, [])
 
-        officerInfo = []
+        officer_info = []
 
         for officer in officers:
-            if delegate and officer != delegate: # Skip the del, we do that in a second anyway
-                officernonendorsers = []
-                endoData = target_info(headers, "nation", officer)
-                if type(endoData) == ErrorRequest:
-                    return endoData
-                endorsers = endoData.find("ENDORSEMENTS").text
+            if (
+                delegate and officer != delegate
+            ):  # Skip the del, we do that in a second anyway
+                officer_non_endo = []
+                endo_data = target_info(headers, "nation", officer)
+                if type(endo_data) == ErrorRequest:
+                    return endo_data
+                endorsers = endo_data.find("ENDORSEMENTS").text
 
-                if endoData:
-                    if "," in endoData:
+                if endo_data:
+                    if "," in endo_data:
                         endorsers = endorsers.split(",")
                     else:
                         endorsers = [endorsers]
 
                 for nation in wanations:
                     if nation not in endorsers:
-                        officernonendorsers.append(nation)
+                        officer_non_endo.append(nation)
 
-                officerInfo.append((officer, officernonendorsers))
-        return (numNations, numWA, delegateInfo, officerInfo)
+                officer_info.append((officer, officer_non_endo))
+        return num_nations, num_wa, delegate_info, officer_info
 
     elif regnat == "nation":
-        nationData = target_info(headers, regnat, target)
-        if type(nationData) == ErrorRequest:
-            return nationData
-        endorsers = nationData.find("ENDORSEMENTS").text
-        regionname = nationData.find("REGION").text.lower().replace(" ","_")
+        nation_data = target_info(headers, regnat, target)
+        if type(nation_data) == ErrorRequest:
+            return nation_data
+        endorsers = nation_data.find("ENDORSEMENTS").text
+        regionname = nation_data.find("REGION").text.lower().replace(" ", "_")
 
-        regionData = target_info(headers, "region", regionname)
-        if type(regionData) == ErrorRequest:
-            return regionData
+        region_data = target_info(headers, "region", regionname)
+        if type(region_data) == ErrorRequest:
+            return region_data
 
-        nations = regionData.find("NATIONS").text
-        numNations = len(nations)
-        wanations = regionData.find("UNNATIONS").text
-        numWA = len(wanations)
+        nations = region_data.find("NATIONS").text
+        num_nations = len(nations)
+        wanations = region_data.find("UNNATIONS").text
+        num_wa = len(wanations)
 
         if ":" in nations:
-            nations = nations.split(":") 
+            nations = nations.split(":")
         else:
             nations = [nations]
 
         if "," in wanations:
-            wanations = wanations.split(",") 
+            wanations = wanations.split(",")
         else:
             wanations = [wanations]
 
@@ -206,32 +186,38 @@ def non_endo(headers, regnat, target):
             if nation not in endorsers:
                 nonendorsers.append(nation)
 
-        return (numNations, numWA, (target, nonendorsers))
+        return num_nations, num_wa, (target, nonendorsers)
 
     else:
-        raise RuntimeError(f"Illegal option selected for regnat: {regnat}") # How did we get here?
+        raise RuntimeError(
+            f"Illegal option selected for regnat: {regnat}"
+        )  # How did we get here?
+
 
 def non_wa():
     pass
 
+
 def deathwatch():
     pass
 
-def write_nationlist(f,nationlist,formatting):
+
+def write_nationlist(f, nationlist, formatting):
     if formatting == "tag":
         for nation in nationlist:
             f.write(f"[nation]{nation}[/nation] ")
         f.write("\n")
 
     elif formatting == "tg":
-        for i in range(0,len(nationlist),8):
-            for nation in nationlist[i:i+8]:
+        for i in range(0, len(nationlist), 8):
+            for nation in nationlist[i : i + 8]:
                 f.write(f"{nation}, ")
             f.write("\n")
 
     f.write("\n")
 
-def getRoundedIdiot(a,b):
+
+def getRoundedIdiot(a, b):
     # 5 / 10
     # 50000 / 10
     # 5000
@@ -239,12 +225,14 @@ def getRoundedIdiot(a,b):
 
     return int((a * 10000) / b) / 100.0
 
+
 # Parameters: mode, assorted settings
-# Does: passes assorted settings to correct helper function as determined by mode. Opens file containing reporting information. 
+# Does: passes assorted settings to correct helper function as determined by mode.
+# Opens file containing reporting information.
 # Returns: status message
-def perform_analysis(headers,mode,regnat,target,formatting):
+def perform_analysis(headers, mode, regnat, target, formatting):
     reportName = f"report-{DT.now().date().isoformat()}-{target}.txt"
-    
+
     nations_raw = []
 
     match mode:
@@ -260,7 +248,9 @@ def perform_analysis(headers,mode,regnat,target,formatting):
                 f.write("Mode: non-endorsers\n")
                 f.write("\n")
                 f.write(f"Number of total nations: {numNations}\n")
-                f.write(f"Number of nations in WA: {numWA} ({getRoundedIdiot(numWA,numNations)})%\n")
+                f.write(
+                    f"Number of nations in WA: {numWA} ({getRoundedIdiot(numWA,numNations)})%\n"
+                )
 
                 if regnat == "region":
                     officerInfo = raw_data[3]
@@ -268,10 +258,14 @@ def perform_analysis(headers,mode,regnat,target,formatting):
                         f.write("\n")
 
                         if delInfo[1] != [None]:
-                            f.write(f"Nonendorsers for delegate {delInfo[0]}: {len(delInfo[1])} ({getRoundedIdiot(len(delInfo[1]),numWA)}%)\n")
-                            write_nationlist(f,delInfo[1],formatting)
+                            f.write(
+                                f"Nonendorsers for delegate {delInfo[0]}: {len(delInfo[1])} ({getRoundedIdiot(len(delInfo[1]),numWA)}%)\n"
+                            )
+                            write_nationlist(f, delInfo[1], formatting)
                         else:
-                            f.write(f"Delegate {delInfo[0]} has all possible endorsements")
+                            f.write(
+                                f"Delegate {delInfo[0]} has all possible endorsements"
+                            )
 
                     f.write("\n")
 
@@ -279,24 +273,32 @@ def perform_analysis(headers,mode,regnat,target,formatting):
                         if officer:
                             officerName = officer[0]
                             officerNonE = officer[1]
-                            
+
                             if officer:
                                 if officerNonE != [None]:
-                                    f.write(f"Nonendorsers for officer {officerName}: {len(officerNonE)} ({getRoundedIdiot(len(officerNonE),numWA)}%)\n")
-                                    write_nationlist(f,officerNonE,formatting)
+                                    f.write(
+                                        f"Nonendorsers for officer {officerName}: {len(officerNonE)} ({getRoundedIdiot(len(officerNonE),numWA)}%)\n"
+                                    )
+                                    write_nationlist(f, officerNonE, formatting)
                                     f.write("\n")
                                 else:
-                                    f.write(f"Officer {officerName} has all possible endorsements")
+                                    f.write(
+                                        f"Officer {officerName} has all possible endorsements"
+                                    )
 
                 elif regnat == "nation":
                     if delInfo and delInfo[0]:
                         f.write("\n")
 
                         if delInfo[1] != [None]:
-                            f.write(f"Nonendorsers for target {delInfo[0]}: {len(delInfo[1])} ({getRoundedIdiot(len(delInfo[1]),numWA)}%)\n")
-                            write_nationlist(f,delInfo[1],formatting)
+                            f.write(
+                                f"Nonendorsers for target {delInfo[0]}: {len(delInfo[1])} ({getRoundedIdiot(len(delInfo[1]),numWA)}%)\n"
+                            )
+                            write_nationlist(f, delInfo[1], formatting)
                         else:
-                            f.write(f"Target {delInfo[0]} has all possible endorsements")
+                            f.write(
+                                f"Target {delInfo[0]} has all possible endorsements"
+                            )
 
                 f.write("\nEND OF REPORT\n\n\n")
 
@@ -305,12 +307,12 @@ def perform_analysis(headers,mode,regnat,target,formatting):
 
         case "deathwatch":
             raw_data = deathwatch(headers, regnat, target)
-            
+
     # Abort and alert user in the event of an error
     if type(raw_data) == ErrorRequest:
-        return raw_data.makePost() # One of the subfunctions wishes to raise an error request - pass it along as needed
-
-    
+        return (
+            raw_data.makePost()
+        )  # One of the subfunctions wishes to raise an error request - pass it along as needed
 
     # TODO: Parse nations_raw according to formatting
     # TODO: Generate report using parsed nationlist
