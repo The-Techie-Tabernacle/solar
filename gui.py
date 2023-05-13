@@ -9,7 +9,8 @@ Patch Notes vMG-0.1.1: Seems to mostly be working, I think most of the issues rn
 Patch Notes vMG-0.1: Actually created the file, current calls from solar itself so still does console printing
 """
 import PySimpleGUI as sg
-import solar as so
+#import solar as so
+import main as so
 
 # Setting the color scheme
 sg.theme("NeutralBlue")
@@ -27,7 +28,7 @@ layout = [
                                                                                  readonly=True, key="-REGNAT-")],
     [sg.Text("Desired Action: "), sg.Combo(values=actionList, default_value="Non-Endo" , readonly=True, key="-ACTION-"),
      sg.Combo(values=tagTGList, default_value="TAG", readonly=True, key="-TAGTG-")],
-    [sg.Button("Exit", size=(3, 1), key="-EXIT-"), sg.Button("Submit", size=(5, 1), key="-SUBMIT-")]
+    [sg.Button("Exit", size=(3, 1), key="-EXIT-"), sg.Button("Submit", size=(5, 1), key="-SUBMIT-",bind_return_key=True)]
 ]
 
 # Create the window!
@@ -58,28 +59,40 @@ while event != "-EXIT-":
     if event in [sg.WIN_CLOSED, "-EXIT-"]:
         break
     elif event == "-SUBMIT-":
-        # Wonderful, wonderful match case
-        match (values["-ACTION-"]):
-            case "Non-Endo":
-                if values["-REGNAT-"] == "Region":
-                    post = "Region"  # Once backend functions are fixed it will call for post here
-                else:
-                    post = "Nation"
-                window['-OUT-'].update(post)
+        window['-OUT-'].update("Performing analysis, please wait...")
 
-            case "Non-WA":
-                if values["-REGNAT-"] == "Region":
-                    post = "Region"  # Once backend functions are fixed it will call for post here
-                else:
-                    post = "Nation"
-                window['-OUT-'].update(post)
+        # Wonderful, wonderful match case - NO MATCH CASE FOR YOU >:(
+#        match (values["-ACTION-"]):
 
-            case "Deathwatch":
-                if values["-REGNAT-"] == "Region":
-                    post = "Region"  # Once backend functions are fixed it will call for post here
-                else:
-                    post = "Nation"
-                window['-OUT-'].update(post)
+        post = "Error: could not complete request. Please file a bug report." # make the default ask to file a bug report
+        mode = values["-ACTION-"].lower()
+        target = values["-TARG-"].lower().replace(" ","_") #NSification
+        regnat = values["-REGNAT-"].lower()
+        formatting = values["-TAGTG-"].lower()
+
+        post = so.perform_analysis(headers,mode,regnat,target,formatting)
+
+#            case "Non-Endo":
+#                #if values["-REGNAT-"] == "Region":
+#                #    post = "Region"  # Once backend functions are fixed it will call for post here
+#                #else:
+#                #    post = "Nation"
+#                window['-OUT-'].update(post)
+#
+#            case "Non-WA":
+#                if values["-REGNAT-"] == "Region":
+#                    post = "Region"  # Once backend functions are fixed it will call for post here
+#                else:
+#                    post = "Nation"
+#                window['-OUT-'].update(post)
+#
+#            case "Deathwatch":
+#                if values["-REGNAT-"] == "Region":
+#                    post = "Region"  # Once backend functions are fixed it will call for post here
+#                else:
+#                    post = "Nation"
+
+        window['-OUT-'].update(post)
 
 
 # Close the window
