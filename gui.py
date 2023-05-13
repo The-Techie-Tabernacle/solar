@@ -2,6 +2,7 @@
 The GUI file for Project Solar! Originally Solar was a console only script however this is being changed as to make the
 script more user-friendly!
 
+Patch Notes vMG-1.0.2: Frontend revamped, not connected to backend yet
 Patch Notes vMG-1.0.1: Revamping front end for 1.1 release
 Patch Notes vAX-0.1.2: Hotfixes for existing work
 Patch Notes vMG-0.1.1: Seems to mostly be working, I think most of the issues rn are in the solar module not gui

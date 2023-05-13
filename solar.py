@@ -6,16 +6,17 @@ Patch Notes vM0.2.4: Redid most of it for interaction with the GUI. . . needs wo
 Patch Notes vM0.2.3: Added Try/Except to check if there are no WA nations
 Patch Notes vM0.2.2: Merged Malphe fork, did input validation for region/nation that are not valid
 Patch Notes vM0.2: Rewrote entire thing to make use of functions to allow different options for the user -M
-Patch Notes vM0.1.2: Added functionality to show non-endorsers for officers -A
+Patch Notes vA0.1.2: Added functionality to show non-endorsers for officers
 
 Malphe Fork 1D.5M.2023Y: tweaked command line interface. Added functionality for non-endorsers with [nation] tags.
 """
 import requests
 from xml.etree import ElementTree as et
 from datetime import datetime as dt
-#from itertools import batched
+# from itertools import batched
 
-def batched(iterable , max_batch_size: int):
+
+def batched(iterable, max_batch_size: int):
     """ Batches an iterable into lists of given maximum size, yielding them one by one. """
     batch = []
     for element in iterable:
@@ -25,6 +26,7 @@ def batched(iterable , max_batch_size: int):
             batch = []
     if len(batch) > 0:
         yield batch
+
 
 residents = []
 wa_nations = []
