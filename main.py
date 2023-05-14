@@ -2,6 +2,7 @@
 Project Solar! This is a basic data analyst script meant to allow the user to gather information on NS regions' WA -
 membership rates as well as who is endorsing who etc.
 
+Patch Notes vM1.0.4: Reviewed 1.0.3, altered variable names, overall tried to refit to convention (and fixed typos)
 Patch Notes vA1.0.3: Continue refactoring, backend modification, etc. 
 Patch Notes vM1.0.2: Began refactoring the code to work with new GUI
 Patch Notes vM0.2.4: Redid most of it for interaction with the GUI. . . needs work
@@ -57,11 +58,12 @@ def target_info(headers, regnat, target):
     target_status = information_api.status_code
 
     if target_status != 200:
-        errorRequest = ErrorRequest(
+        error_request = ErrorRequest(
             "target_info",
-            f"Illegal status code received for {regnat} {target}: {target_status}\nCheck that {target} exists and is spelled correctly.",
+            f"Illegal status code received for {regnat} {target}: {target_status}\nCheck that {target} "
+            f"exists and is spelled correctly.",
         )
-        return errorRequest
+        return error_request
 
     else:
         return ET.fromstring(
@@ -186,12 +188,12 @@ def non_endo(headers, regnat, target):
         else:
             endorsers = []
 
-        nonendorsers = []
+        non_endos = []
         for nation in wanations:
             if nation not in endorsers:
-                nonendorsers.append(nation)
+                non_endos.append(nation)
 
-        return num_nations, num_wa, (target, nonendorsers)
+        return num_nations, num_wa, (target, non_endos)
 
     else:
         raise RuntimeError(
@@ -240,27 +242,22 @@ def non_wa(headers, regnat, target):
         else:
             wanations = [wanations]
 
-        notinwa = []
+        not_in_wa = []
         for nation in nations:
             if nation not in wanations:
-                notinwa.append(nation)
+                not_in_wa.append(nation)
 
-        return (len(nations), len(wanations), notinwa)
+        return len(nations), len(wanations), not_in_wa
 
     elif regnat == "nation":
-        endostatus = raw_data.find("UNSTATUS").text
-        if endostatus.lower() == "non-member":
+        endo_status = raw_data.find("UNSTATUS").text
+        if endo_status.lower() == "non-member":
             return False
         else:
             return True
 
 
-# https://www.nationstates.net/pages/regions.xml.gz
-# https://www.nationstates.net/pages/nations.xml.gz
-
-
 def download_file(headers, url):
-    # print(f"Downloading {url}")
     local_filename = url.split("/")[-1]
     with requests.get(url, stream=True, headers=headers) as r:
         with open(local_filename, "wb") as f:
@@ -277,22 +274,22 @@ def parseNations(headers, region):
     nations = ET.fromstring(r.text).findtext("NATIONS").split(":")
 
     with gzip.open("nations.xml.gz", mode="r") as f:
-        rawnations = f.read()
+        raw_nations = f.read()
 
-    nationsxml = ET.fromstring(rawnations)
+    nations_xml = ET.fromstring(raw_nations)
 
     results = {}
 
-    for nation in nationsxml.findall("NATION"):
+    for nation in nations_xml.findall("NATION"):
         if nation.find("REGION").text.lower().replace(" ", "_") == region:
-            lastlogin = nation.find("LASTACTIVITY").text
-            if "days" in lastlogin.lower():
-                numDays = str(int(lastlogin.split(" days")[0]))
+            last_login = nation.find("LASTACTIVITY").text
+            if "days" in last_login.lower():
+                num_days = str(int(last_login.split(" days")[0]))
 
-                if numDays not in results:
-                    results[numDays] = []
+                if num_days not in results:
+                    results[num_days] = []
 
-                results[numDays].append(nation.find("NAME").text)
+                results[num_days].append(nation.find("NAME").text)
 
     return results
 
@@ -306,16 +303,16 @@ def deathwatch(headers, regnat, target):
         times = parseNations(headers, target)
         return times
     else:
-        nationData = target_info(headers, regnat, target)
+        nation = target_info(headers, regnat, target)
         results = {}
-        lastlogin = nation.find("LASTACTIVITY").text
-        if "days" in lastlogin.lower():
-            numDays = str(int(lastlogin.split(" days")[0]))
+        last_login = nation.find("LASTACTIVITY").text
+        if "days" in last_login.lower():
+            num_days = str(int(last_login.split(" days")[0]))
 
-            if numDays not in results:
-                results[numDays] = []
+            if num_days not in results:
+                results[num_days] = []
 
-            results[numDays].append(nation.find("NAME").text)
+            results[num_days].append(nation.find("NAME").text)
 
         return results  # Same data type moment
 
@@ -325,95 +322,98 @@ def deathwatch(headers, regnat, target):
 # Opens file containing reporting information.
 # Returns: status message
 def perform_analysis(headers, mode, regnat, target, formatting):
-    reportName = f"report-{DT.now().date().isoformat()}-{target}.txt"
+    report_name = f"report-{DT.now().date().isoformat()}-{target}.txt"
 
     nations_raw = []
 
     match mode:
         case "non-endo":
             raw_data = non_endo(headers, regnat, target)
-            numNations = raw_data[0]
-            numWA = raw_data[1]
-            delInfo = raw_data[2]
+            num_nations = raw_data[0]
+            num_wa = raw_data[1]
+            del_info = raw_data[2]
 
-            with open(reportName, "a") as f:
+            with open(report_name, "a") as f:
                 f.write(f"Report for {regnat} {target.title()}\n")
                 f.write(f"Date generated: {DT.now().date().isoformat()}\n")
                 f.write("Mode: non-endorsers\n")
                 f.write("\n")
-                f.write(f"Number of total nations: {numNations}\n")
+                f.write(f"Number of total nations: {num_nations}\n")
                 f.write(
-                    f"Number of nations in WA: {numWA} ({getRoundedIdiot(numWA,numNations)})%\n"
+                    f"Number of nations in WA: {num_wa} ({getRoundedIdiot(num_wa,num_nations)})%\n"
                 )
 
                 if regnat == "region":
-                    officerInfo = raw_data[3]
-                    if delInfo and delInfo[0]:
+                    officer_info = raw_data[3]
+                    if del_info and del_info[0]:
                         f.write("\n")
 
-                        if delInfo[1] != [None]:
+                        if del_info[1] != [None]:
                             f.write(
-                                f"Nonendorsers for delegate {delInfo[0]}: {len(delInfo[1])} ({getRoundedIdiot(len(delInfo[1]),numWA)}%)\n"
+                                f"Nonendorsers for delegate {del_info[0]}: {len(del_info[1])} "
+                                f"({getRoundedIdiot(len(del_info[1]),num_wa)}%)\n"
                             )
-                            write_nationlist(f, delInfo[1], formatting)
+                            write_nationlist(f, del_info[1], formatting)
                         else:
                             f.write(
-                                f"Delegate {delInfo[0]} has all possible endorsements"
+                                f"Delegate {del_info[0]} has all possible endorsements"
                             )
 
                     f.write("\n")
 
-                    for officer in officerInfo:
+                    for officer in officer_info:
                         if officer:
-                            officerName = officer[0]
-                            officerNonE = officer[1]
+                            officer_name = officer[0]
+                            officer_non_e = officer[1]
 
                             if officer:
-                                if officerNonE != [None]:
+                                if officer_non_e != [None]:
                                     f.write(
-                                        f"Nonendorsers for officer {officerName}: {len(officerNonE)} ({getRoundedIdiot(len(officerNonE),numWA)}%)\n"
+                                        f"Nonendorsers for officer {officer_name}: {len(officer_non_e)} "
+                                        f"({getRoundedIdiot(len(officer_non_e),num_wa)}%)\n"
                                     )
-                                    write_nationlist(f, officerNonE, formatting)
+                                    write_nationlist(f, officer_non_e, formatting)
                                     f.write("\n")
                                 else:
                                     f.write(
-                                        f"Officer {officerName} has all possible endorsements"
+                                        f"Officer {officer_name} has all possible endorsements"
                                     )
 
                 elif regnat == "nation":
-                    if delInfo and delInfo[0]:
+                    if del_info and del_info[0]:
                         f.write("\n")
 
-                        if delInfo[1] != [None]:
+                        if del_info[1] != [None]:
                             f.write(
-                                f"Nonendorsers for target {delInfo[0]}: {len(delInfo[1])} ({getRoundedIdiot(len(delInfo[1]),numWA)}%)\n"
+                                f"Nonendorsers for target {del_info[0]}: {len(del_info[1])} "
+                                f"({getRoundedIdiot(len(del_info[1]),num_wa)}%)\n"
                             )
-                            write_nationlist(f, delInfo[1], formatting)
+                            write_nationlist(f, del_info[1], formatting)
                         else:
                             f.write(
-                                f"Target {delInfo[0]} has all possible endorsements"
+                                f"Target {del_info[0]} has all possible endorsements"
                             )
 
-                f.write("END OF REPORT\n\n\n")
+                f.write("\nEND OF REPORT\n\n\n")
 
         case "non-wa":
             raw_data = non_wa(headers, regnat, target)
 
-            with open(reportName, "a") as f:
+            with open(report_name, "a") as f:
                 f.write(f"Report for {regnat} {target.title()}\n")
                 f.write(f"Date generated: {DT.now().date().isoformat()}\n")
                 f.write("Mode: Non-WA\n")
                 if regnat == "region":
-                    numNations = raw_data[0]
-                    numWA = raw_data[1]
-                    notWA = raw_data[2]
+                    num_nations = raw_data[0]
+                    num_wa = raw_data[1]
+                    not_wa = raw_data[2]
                     f.write("\n")
-                    f.write(f"Number of total nations: {numNations}\n")
+                    f.write(f"Number of total nations: {num_nations}\n")
                     f.write(
-                        f"Number of nations in WA: {numWA} ({getRoundedIdiot(numWA,numNations)})%\n"
+                        f"Number of nations in WA: {num_wa} ({getRoundedIdiot(num_wa,num_nations)})%\n"
                     )
                     f.write(f"Nations not in the WA in {target}:\n")
-                    write_nationlist(f, notWA, formatting)
+                    write_nationlist(f, not_wa, formatting)
 
                 else:
                     if raw_data:
@@ -426,7 +426,7 @@ def perform_analysis(headers, mode, regnat, target, formatting):
         case "deathwatch":
             raw_data = deathwatch(headers, regnat, target)
 
-            with open(reportName, "a") as f:
+            with open(report_name, "a") as f:
                 f.write(f"Report for {regnat} {target.title()}\n")
                 f.write(f"Date generated: {DT.now().date().isoformat()}\n")
                 f.write("Mode: DeathWatch\n")
@@ -435,7 +435,6 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                         f"Nations that have not logged in for {key} days: ({len(raw_data[key])})\n"
                     )
                     write_nationlist(f, raw_data[key], formatting)
-                #                f.write("\n")
 
                 f.write("\nEND OF REPORT\n\n\n")
 
@@ -445,7 +444,4 @@ def perform_analysis(headers, mode, regnat, target, formatting):
             raw_data.makePost()
         )  # One of the subfunctions wishes to raise an error request - pass it along as needed
 
-    # TODO: Parse nations_raw according to formatting
-    # TODO: Generate report using parsed nationlist
-
-    return f"Your results are available in the file {reportName}"
+    return f"Your results are available in the file {report_name}"

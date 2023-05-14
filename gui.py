@@ -2,6 +2,7 @@
 The GUI file for Project Solar! Originally Solar was a console only script however this is being changed as to make the
 script more user-friendly!
 
+Patch Notes vMG-1.0.4: Added pop up :)
 Patch Notes vMG-1.0.2: Frontend revamped, not connected to backend yet
 Patch Notes vMG-1.0.1: Revamping front end for 1.1 release
 Patch Notes vAX-0.1.2: Hotfixes for existing work
@@ -49,7 +50,7 @@ layout = [
 window = sg.Window("Solar", layout)
 
 # Starting event
-event = "start"
+event = "-START-"
 headers = ""
 
 
@@ -77,40 +78,30 @@ while event != "-EXIT-":
     elif event == "-SUBMIT-":
         window["-OUT-"].update("Performing analysis, please wait...")
 
-        # Wonderful, wonderful match case - NO MATCH CASE FOR YOU >:(
-        #        match (values["-ACTION-"]):
-
-        post = (  # make the default ask to file a bug report
-            "Error: could not complete request. Please file a bug report."
+        # Checking the user agent
+        popup = sg.PopupYesNo(
+            f"Is your main nation {values['user-agent']}?",
+            title="Confirm Nation",
+            grab_anywhere=True,
+            keep_on_top=True,
         )
-        mode = values["-ACTION-"].lower()
-        target = values["-TARG-"].lower().replace(" ", "_")  # NSification
-        regnat = values["-REGNAT-"].lower()
-        formatting = values["-TAGTG-"].lower()
 
-        post = so.perform_analysis(headers, mode, regnat, target, formatting)
+        # Checking the answer!
+        if popup == "No":
+            window["-OUT-"].update("Please re-enter your main nation.")
+            event = "-START-"
+        else:
+            post = (  # make the default ask to file a bug report
+                "Error: could not complete request. Please file a bug report."
+            )
+            mode = values["-ACTION-"].lower()
+            target = values["-TARG-"].lower().replace(" ", "_")  # NSification
+            regnat = values["-REGNAT-"].lower()
+            formatting = values["-TAGTG-"].lower()
 
-        #            case "Non-Endo":
-        #                #if values["-REGNAT-"] == "Region":
-        #                #    post = "Region"  # Once backend functions are fixed it will call for post here
-        #                #else:
-        #                #    post = "Nation"
-        #                window['-OUT-'].update(post)
-        #
-        #            case "Non-WA":
-        #                if values["-REGNAT-"] == "Region":
-        #                    post = "Region"  # Once backend functions are fixed it will call for post here
-        #                else:
-        #                    post = "Nation"
-        #                window['-OUT-'].update(post)
-        #
-        #            case "Deathwatch":
-        #                if values["-REGNAT-"] == "Region":
-        #                    post = "Region"  # Once backend functions are fixed it will call for post here
-        #                else:
-        #                    post = "Nation"
+            post = so.perform_analysis(headers, mode, regnat, target, formatting)
 
-        window["-OUT-"].update(post)
+            window["-OUT-"].update(post)
 
 
 # Close the window
