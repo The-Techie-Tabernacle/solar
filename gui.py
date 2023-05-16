@@ -14,6 +14,9 @@ import PySimpleGUI as sg
 # import solar as so
 import main as so
 
+# Import the class
+from main import ErrorRequest as ER
+
 # Setting the color scheme
 sg.theme("NeutralBlue")
 
@@ -100,6 +103,8 @@ while event != "-EXIT-":
             formatting = values["-TAGTG-"].lower()
 
             post = so.perform_analysis(headers, mode, regnat, target, formatting)
+            if type(post) == ER:
+                post = post.makePost()
 
             window["-OUT-"].update(post)
 
