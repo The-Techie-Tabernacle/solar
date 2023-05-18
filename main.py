@@ -1,20 +1,6 @@
 """
 Project Solar! This is a basic data analyst script meant to allow the user to gather information on NS regions' WA -
 membership rates as well as who is endorsing who etc.
-
-Patch Notes vA1.0.6: Turns Musas graphing... thing... into a beautiful library
-Patch Notes vM1.0.5: started work on graphing
-Patch Notes vM1.0.5: Another review, I didn't go through properly last time
-Patch Notes vM1.0.4: Reviewed 1.0.3, altered variable names, overall tried to refit to convention (and fixed typos)
-Patch Notes vA1.0.3: Continue refactoring, backend modification, etc. 
-Patch Notes vM1.0.2: Began refactoring the code to work with new GUI
-Patch Notes vM0.2.4: Redid most of it for interaction with the GUI. . . needs work
-Patch Notes vM0.2.3: Added Try/Except to check if there are no WA nations
-Patch Notes vM0.2.2: Merged Malphe fork, did input validation for region/nation that are not valid
-Patch Notes vM0.2: Rewrote entire thing to make use of functions to allow different options for the user -M
-Patch Notes vM0.1.2: Added functionality to show non-endorsers for officers -A
-
-Malphe Fork 1D.5M.2023Y: tweaked command line interface. Added functionality for non-endorsers with [nation] tags.
 """
 
 import requests
@@ -147,8 +133,6 @@ def non_endo(headers, regnat, target):
                 if i != delegate:
                     del_off.append(i)
 
-            # pt.PopulateXAxis(del_off)
-
             num_wa = len(wanations)
 
             # Y-axis list for # of non-endorsements
@@ -181,12 +165,6 @@ def non_endo(headers, regnat, target):
                     )
 
                     officer_info.append((officer, officer_non_endo))
-
-            # Finish Y-Axis plotting
-            # pt.PopulateYAxis(plot_non_endos)
-
-            # Graph it baby
-            # pt.GraphTheGraph(target)
 
             graph = Graph(del_off, plot_non_endos)
             graph.setTitles(

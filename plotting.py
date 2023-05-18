@@ -1,5 +1,7 @@
+"""
+The plotting module which creates the based graphs for solar!
+"""
 import matplotlib.pyplot as plt
-from datetime import datetime as DT
 
 
 # ---------BAR------------
@@ -23,34 +25,25 @@ class Graph:
 
         self.setPlotLim()
 
-    # Create left edges (x-axis) and heights (y-axis)
-    # Y-Axis limit
     def setPlotLim(self):
         plt.ylim(0, self.ylimMax)
 
         # Space in x-axis and rotate
         plt.xticks(rotation=self.ylimMax / 10)
-        plt.tick_params(axis="x", which="major", labelsize=7)  # ?
-
-    # def UserFriendlyTitle(self):
-    #    for i in self.x:
-    #        n = i.replace("_", " ").title()
-    #        d = self.x.index(i)
-    #        self.x[d] = n
+        plt.tick_params(axis="x", which="major", labelsize=7)  # Set x-axis label sizes
 
     def PopulateXAxis(self, listIn: list):
         self.x.clear()
         for i in listIn:
             self.x.append(i.replace("_", " ").title())
 
-        # UserFriendlyTitle()
-
     def PopulateYAxis(self, listIn: list):
         self.y.clear()
         for i in listIn:
             self.y.append(i)
 
-    # musa plz generalize ur code i am going to die
+    # musa plz generalize ur code i am going to die -A
+    # never. -M
     def setTitles(self, title, x, y):
         plt.title(title)
         plt.xlabel(x)
@@ -64,9 +57,7 @@ class Graph:
 
                 # Save the image
                 if save:
-                    plt.savefig(
-                        saveFile
-                    )  # f"graphic-{DT.now().date().isoformat()}-{target}.png")
+                    plt.savefig(saveFile)
 
                 # Show plot
                 plt.show(block=False)
