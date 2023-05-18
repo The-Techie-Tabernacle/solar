@@ -1,23 +1,30 @@
-# import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime as DT
 
-# ---------LINE------------
 # Create x and y coordinates
-x = [
-    "Beaverdam Hollow",
-    "counterfeit_kyrusia_puppet",
-    "jurait",
-    "lockeport",
-    "major_nice",
-    "quebec_land",
-]
-y = [23.30, 54.37, 42.72, 39.81, 43.69, 54.37]
+x = []
+y = []
 
-for i in x:
-    n = i.replace("_", " ").title()
-    d = x.index(i)
-    x[d] = n
+
+def UserFriendlyTitle():
+    for i in x:
+        n = i.replace("_", " ").title()
+        d = x.index(i)
+        x[d] = n
+
+
+def PopulateXAxis(officers: list):
+    x.clear()
+    for i in officers:
+        x.append(i)
+    UserFriendlyTitle()
+
+
+def PopulateYAxis(non_endorsements: list):
+    y.clear()
+    for i in non_endorsements:
+        y.append(i)
+
 
 # Set titles
 plt.title("Percentage of non-endorsers in Delegate and Officers")
@@ -33,14 +40,20 @@ heights = []
 plt.ylim(0, 100)
 
 # Space in x-axis and rotate
-plt.xticks(rotation=15)
+plt.xticks(rotation=10)
 plt.tick_params(axis="x", which="major", labelsize=7)
 
-# Plot the bar graph
-plt.bar(x, y)
 
-# Save the image
-plt.savefig(f"graphic-{DT.now().date().isoformat()}-DEBUG.png")
+def GraphTheGraph(target: str):
+    try:
+        if len(x) == len(y):
+            # Plot the bar graph
+            plt.bar(x, y)
 
-# Show plot
-plt.show()
+            # Save the image
+            plt.savefig(f"graphic-{DT.now().date().isoformat()}-{target}.png")
+
+            # Show plot
+            plt.show(block=False)
+    except Exception as e:
+        print(e)

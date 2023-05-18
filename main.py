@@ -2,6 +2,7 @@
 Project Solar! This is a basic data analyst script meant to allow the user to gather information on NS regions' WA -
 membership rates as well as who is endorsing who etc.
 
+Patch Notes vM1.0.5: started work on graphing
 Patch Notes vM1.0.5: Another review, I didn't go through properly last time
 Patch Notes vM1.0.4: Reviewed 1.0.3, altered variable names, overall tried to refit to convention (and fixed typos)
 Patch Notes vA1.0.3: Continue refactoring, backend modification, etc. 
@@ -14,7 +15,6 @@ Patch Notes vM0.1.2: Added functionality to show non-endorsers for officers -A
 
 Malphe Fork 1D.5M.2023Y: tweaked command line interface. Added functionality for non-endorsers with [nation] tags.
 """
-import math
 
 import requests
 from xml.etree import ElementTree as ET
@@ -23,6 +23,9 @@ import shutil
 
 # from os import path
 import gzip
+
+# Graphing!
+import plotting as pt
 
 
 class ErrorRequest:
@@ -111,8 +114,9 @@ def non_endo(headers, regnat, target):
             else:
                 wanations = [wanations]
 
+            del_non_endos = []
+
             if delegate != 0:
-                del_non_endos = []
                 del_endos = target_info(headers, "nation", delegate)
                 if type(del_endos) == ErrorRequest:
                     return del_endos
@@ -134,6 +138,18 @@ def non_endo(headers, regnat, target):
                 delegate_info = (None, [])
 
             officer_info = []
+
+            # Populate x-axis over in plotting module
+            del_off = [delegate]
+            for i in officers:
+                if i != delegate:
+                    del_off.append(i)
+            pt.PopulateXAxis(del_off)
+
+            num_wa = len(wanations)
+
+            # Y-axis list for # of non-endorsements
+            plot_non_endos = [getRoundedIdiot(len(del_non_endos), num_wa)]
 
             for officer in officers:
                 if (
@@ -157,9 +173,17 @@ def non_endo(headers, regnat, target):
                             if nation not in endo_data and nation != officer:
                                 officer_non_endo.append(nation)
 
+                    plot_non_endos.append(
+                        getRoundedIdiot(len(officer_non_endo), num_wa)
+                    )
+
                     officer_info.append((officer, officer_non_endo))
 
-            num_wa = len(wanations)
+            # Finish Y-Axis plotting
+            pt.PopulateYAxis(plot_non_endos)
+
+            # Graph it baby
+            pt.GraphTheGraph(target)
 
             return num_nations, num_wa, delegate_info, officer_info
         else:
@@ -229,8 +253,8 @@ def write_nationlist(f, nationlist, formatting):
 
 
 def getRoundedIdiot(a: int, b: int):
-    # a = larger total number
-    # b = smaller number (out of a)
+    # a = smaller number (out of b)
+    # b = larger total number
     c = a * 100 / b
     return round(c, 2)
 
@@ -398,7 +422,9 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                                                 f"Nonendorsers for officer {officer_name}: {len(officer_non_e)} "
                                                 f"({getRoundedIdiot(len(officer_non_e),num_wa)}%)\n"
                                             )
-                                            write_nationlist(f, officer_non_e, formatting)
+                                            write_nationlist(
+                                                f, officer_non_e, formatting
+                                            )
                                             f.write("\n")
                                         else:
                                             f.write(
@@ -433,7 +459,6 @@ def perform_analysis(headers, mode, regnat, target, formatting):
         case "non-wa":
             raw_data = non_wa(headers, regnat, target)
             if type(raw_data) != ErrorRequest:
-
                 with open(report_name, "a") as f:
                     f.write(f"Report for {regnat} {target.title()}\n")
                     f.write(f"Date generated: {DT.now().date().isoformat()}\n")
@@ -451,7 +476,9 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                         if len(not_wa) > 0:
                             write_nationlist(f, not_wa, formatting)
                         else:
-                            f.write(f"There are no WA nations in {target.title().replace('_', ' ')}\n")
+                            f.write(
+                                f"There are no WA nations in {target.title().replace('_', ' ')}\n"
+                            )
 
                     else:
                         if raw_data:
@@ -466,7 +493,6 @@ def perform_analysis(headers, mode, regnat, target, formatting):
         case "deathwatch":
             raw_data = deathwatch(headers, regnat, target)
             if type(raw_data) != ErrorRequest:
-
                 with open(report_name, "a") as f:
                     f.write(f"Report for {regnat} {target.title()}\n")
                     f.write(f"Date generated: {DT.now().date().isoformat()}\n")

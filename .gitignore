@@ -2,3 +2,4 @@ report-*
 __pycache__/*
 nations.xml
 nations.xml.gz
+graphic-*
