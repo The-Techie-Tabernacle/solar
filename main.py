@@ -2,6 +2,7 @@
 Project Solar! This is a basic data analyst script meant to allow the user to gather information on NS regions' WA -
 membership rates as well as who is endorsing who etc.
 
+Patch Notes vA1.0.6: Turns Musas graphing... thing... into a beautiful library
 Patch Notes vM1.0.5: started work on graphing
 Patch Notes vM1.0.5: Another review, I didn't go through properly last time
 Patch Notes vM1.0.4: Reviewed 1.0.3, altered variable names, overall tried to refit to convention (and fixed typos)
@@ -25,7 +26,8 @@ import shutil
 import gzip
 
 # Graphing!
-import plotting as pt
+# import plotting as pt
+from plotting import Graph
 
 
 class ErrorRequest:
@@ -144,7 +146,8 @@ def non_endo(headers, regnat, target):
             for i in officers:
                 if i != delegate:
                     del_off.append(i)
-            pt.PopulateXAxis(del_off)
+
+            # pt.PopulateXAxis(del_off)
 
             num_wa = len(wanations)
 
@@ -180,10 +183,21 @@ def non_endo(headers, regnat, target):
                     officer_info.append((officer, officer_non_endo))
 
             # Finish Y-Axis plotting
-            pt.PopulateYAxis(plot_non_endos)
+            # pt.PopulateYAxis(plot_non_endos)
 
             # Graph it baby
-            pt.GraphTheGraph(target)
+            # pt.GraphTheGraph(target)
+
+            graph = Graph(del_off, plot_non_endos)
+            graph.setTitles(
+                "Percentage of non-endorsers in Delegate and Officers",
+                "Officers",
+                "Percentage of WA Nations",
+            )
+            graph.show(
+                save=True,
+                saveFile=f"graphic-{DT.now().date().isoformat()}-{target}.png",
+            )
 
             return num_nations, num_wa, delegate_info, officer_info
         else:
