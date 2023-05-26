@@ -509,7 +509,7 @@ def perform_analysis(headers, mode, regnat, target, formatting):
 
                 graph = Graph(sorted_keys, values, ylimMax=biggest)
                 graph.setTitles(
-                    f"Time since last login in {target.title()}",
+                    f"Time since last login in {target.title().replace('_',' ')}",
                     "Number of Days",
                     "Number of Nations who logged in X days ago",
                 )
