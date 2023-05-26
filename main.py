@@ -496,6 +496,26 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                         write_nationlist(f, raw_data[key], formatting)
 
                     f.write("\nEND OF REPORT\n\n\n")
+
+                sorted_keys = sorted(raw_data.keys(), key=lambda x: int(x))
+
+                biggest = 0
+
+                biggest = max([len(raw_data[key]) for key in sorted_keys])
+
+                values = [len(raw_data[key]) for key in sorted_keys]
+
+                graph = Graph(sorted_keys, values, ylimMax=biggest)
+                graph.setTitles(
+                    "Time since last login",
+                    "Number of Days",
+                    "Percent of Nations who logged in X days ago",
+                )
+                graph.show(
+                    save=True,
+                    saveFile=f"graphic-{DT.now().date().isoformat()}-{target}.png",
+                )
+
             else:
                 return raw_data
 
