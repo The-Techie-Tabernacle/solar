@@ -502,14 +502,16 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                 biggest = 0
 
                 biggest = max([len(raw_data[key]) for key in sorted_keys])
+                biggest *= 1.5  # Add slight buffer
+                biggest = int(biggest)
 
                 values = [len(raw_data[key]) for key in sorted_keys]
 
                 graph = Graph(sorted_keys, values, ylimMax=biggest)
                 graph.setTitles(
-                    "Time since last login",
+                    f"Time since last login in {target.title()}",
                     "Number of Days",
-                    "Percent of Nations who logged in X days ago",
+                    "Number of Nations who logged in X days ago",
                 )
                 graph.show(
                     save=True,
