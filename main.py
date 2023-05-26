@@ -502,7 +502,7 @@ def perform_analysis(headers, mode, regnat, target, formatting):
                 biggest = 0
 
                 biggest = max([len(raw_data[key]) for key in sorted_keys])
-                biggest *= 1.5  # Add slight buffer
+                biggest = (biggest + 1) * 1.2  # Add slight buffer
                 biggest = int(biggest)
 
                 values = [len(raw_data[key]) for key in sorted_keys]
