@@ -3,3 +3,4 @@ __pycache__/*
 nations.xml
 nations.xml.gz
 graphic-*
+.idea/*

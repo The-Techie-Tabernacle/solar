@@ -11,7 +11,7 @@ import main as so
 from main import ErrorRequest as ER
 
 # Setting the color scheme
-sg.theme("NeutralBlue")
+sg.theme("DarkBlack")
 
 # Create a list for our wonderful dropdown menus
 actionList = ["Non-Endo", "Non-WA", "Deathwatch"]
