@@ -1,0 +1,34 @@
+The various patch notes:
+Version [version]: [note] -[dev]
+
+Current Notes:
+Version 1.1.0: Fixed plotting.py, moved patch notes out of docstrings -Musa
+
+
+Notes up until May 28th, 2023 at 11:18 AM:
+v[FIRST LETTER OF NAME][VERSION NUMBER]
+
+main.py (and solar.py before that)
+Patch Notes vA1.0.8: Let there be graphing for the watchers of death
+Patch Notes vA1.0.7: Turns Musa's graphing... thing... into a beautiful library
+Patch Notes vM1.0.6: started work on graphing
+Patch Notes vM1.0.5: Another review, I didn't go through properly last time
+Patch Notes vM1.0.4: Reviewed 1.0.3, altered variable names, overall tried to refit to convention (and fixed typos)
+Patch Notes vA1.0.3: Continue refactoring, backend modification, etc.
+Patch Notes vM1.0.2: Began refactoring the code to work with new GUI
+Patch Notes vM0.2.4: Redid most of it for interaction with the GUI. . . needs work
+Patch Notes vM0.2.3: Added Try/Except to check if there are no WA nations
+Patch Notes vM0.2.2: Merged Malphe fork, did input validation for region/nation that are not valid
+Patch Notes vM0.2.0: Rewrote entire thing to make use of functions to allow different options for the user
+Patch Notes vA0.1.2: Added functionality to show non-endorsers for officers
+Malphe Fork 1D.5M.2023Y: tweaked command line interface. Added functionality for non-endorsers with [nation] tags.
+
+
+gui.py
+Patch Notes vMG-1.0.4: Added pop up :)
+Patch Notes vMG-1.0.2: Frontend revamped, not connected to backend yet
+Patch Notes vMG-1.0.1: Revamping front end for 1.1 release
+Patch Notes vAX-0.1.2: Hotfixes for existing work
+Patch Notes vMG-0.1.1: Seems to mostly be working, I think most of the issues rn are in the solar module not gui
+Patch Notes vMG-0.1: Actually created the file, current calls from solar itself so still does console printing
+
