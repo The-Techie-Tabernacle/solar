@@ -42,4 +42,4 @@ Additionally, some functions, such as DeathWatch in region mode, may create a gr
 Resulting reports will be saved with a report- or graph- prefix, followed by the date and target name.
 
 ## Support
-Contact me on discord @ Muhammad Musa#2170 with any issues
+Contact me on discord @ theonetruepi with any issues
